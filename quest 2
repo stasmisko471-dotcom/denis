@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер систем счисления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .converter-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 0.5rem;
+            font-weight: 500;
+            min-height: 1.5rem;
+        }
+
+        .results-section {
+            border-top: 2px solid #f0f0f0;
+            padding-top: 1.5rem;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .system-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .result-value {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #2c3e50;
+            background: #e8f4f8;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+        }
+
+        .status-section {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .status-connected {
+            color: #27ae60;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.5rem;
+            background: #d5f4e6;
+            border-radius: 6px;
+            border: 1px solid #27ae60;
+        }
+
+        .status-disconnected {
+            color: #e74c3c;
+            font-weight: 600;
+            text-align: center;
+            padding: 0.5rem;
+            background: #fadbd8;
+            border-radius: 6px;
+            border: 1px solid #e74c3c;
+        }
+
+        .loading {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .converter-card {
+                padding: 1.5rem;
+            }
+            
+            .result-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Конвертер систем счисления</h1>
+            <p>Введите число в десятичной системе для конвертации</p>
+        </header>
+
+        <main>
+            <div class="converter-card">
+                <div class="input-section">
+                    <label for="numberInput">Десятичное число:</label>
+                    <input type="text" id="numberInput" placeholder="Введите целое число">
+                    <button id="convertBtn">Конвертировать</button>
+                    <div id="errorMessage" class="error-message"></div>
+                </div>
+
+                <div class="results-section">
+                    <div class="result-row">
+                        <span class="system-name">Двоичная:</span>
+                        <span id="binaryResult" class="result-value">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="system-name">Восьмеричная:</span>
+                        <span id="octalResult" class="result-value">-</span>
+                    </div>
+                    <div class="result-row">
+                        <span class="system-name">Шестнадцатеричная:</span>
+                        <span id="hexResult" class="result-value">-</span>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div id="connectionStatus" class="status-connected">
+                        ✓ Клиентская часть готова к работе
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        class NumberConverter {
+            constructor() {
+                this.initializeElements();
+                this.setupEventListeners();
+                this.updateStatus('ready');
+            }
+
+            initializeElements() {
+                this.numberInput = document.getElementById('numberInput');
+                this.convertBtn = document.getElementById('convertBtn');
+                this.errorMessage = document.getElementById('errorMessage');
+                this.binaryResult = document.getElementById('binaryResult');
+                this.octalResult = document.getElementById('octalResult');
+                this.hexResult = document.getElementById('hexResult');
+                this.connectionStatus = document.getElementById('connectionStatus');
+            }
+
+            setupEventListeners() {
+                this.convertBtn.addEventListener('click', () => this.convertNumber());
+                this.numberInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.convertNumber();
+                    }
+                });
+            }
+
+            convertNumber() {
+                const number = this.numberInput.value.trim();
+                
+                // Валидация ввода
+                if (!number) {
+                    this.showError('Введите число');
+                    return;
+                }
+
+                if (!/^-?\d+$/.test(number)) {
+                    this.showError('Введите целое число');
+                    return;
+                }
+
+                this.clearError();
+                this.setLoading(true);
+                this.updateStatus('converting');
+
+                // Имитация задержки сервера
+                setTimeout(() => {
+                    try {
+                        const result = this.performConversion(number);
+                        this.displayResults(result);
+                        this.updateStatus('success');
+                    } catch (error) {
+                        this.showError(error.message);
+                        this.clearResults();
+                        this.updateStatus('error');
+                    } finally {
+                        this.setLoading(false);
+                    }
+                }, 500);
+            }
+
+            performConversion(decimalNum) {
+                const num = parseInt(decimalNum);
+                
+                if (isNaN(num)) {
+                    throw new Error('Введите корректное целое число');
+                }
+
+                // Проверка на переполнение
+                if (num > Number.MAX_SAFE_INTEGER || num < Number.MIN_SAFE_INTEGER) {
+                    throw new Error('Число слишком большое для конвертации');
+                }
+
+                return {
+                    decimal: num,
+                    binary: this.toBinary(num),
+                    octal: this.toOctal(num),
+                    hexadecimal: this.toHexadecimal(num)
+                };
+            }
+
+            toBinary(num) {
+                if (num === 0) return '0';
+                if (num < 0) return '-' + this.toBinary(-num);
+                return num.toString(2);
+            }
+
+            toOctal(num) {
+                if (num === 0) return '0';
+                if (num < 0) return '-' + this.toOctal(-num);
+                return num.toString(8);
+            }
+
+            toHexadecimal(num) {
+                if (num === 0) return '0';
+                if (num < 0) return '-' + this.toHexadecimal(-num);
+                return num.toString(16).toUpperCase();
+            }
+
+            displayResults(data) {
+                this.binaryResult.textContent = data.binary;
+                this.octalResult.textContent = data.octal;
+                this.hexResult.textContent = data.hexadecimal;
+            }
+
+            clearResults() {
+                this.binaryResult.textContent = '-';
+                this.octalResult.textContent = '-';
+                this.hexResult.textContent = '-';
+            }
+
+            showError(message) {
+                this.errorMessage.textContent = message;
+            }
+
+            clearError() {
+                this.errorMessage.textContent = '';
+            }
+
+            setLoading(loading) {
+                if (loading) {
+                    this.convertBtn.disabled = true;
+                    this.convertBtn.textContent = 'Конвертация...';
+                    this.convertBtn.classList.add('loading');
+                } else {
+                    this.convertBtn.disabled = false;
+                    this.convertBtn.textContent = 'Конвертировать';
+                    this.convertBtn.classList.remove('loading');
+                }
+            }
+
+            updateStatus(status) {
+                const statusMessages = {
+                    ready: '✓ Клиентская часть готова к работе',
+                    converting: '⏳ Выполняется конвертация...',
+                    success: '✓ Конвертация выполнена успешно',
+                    error: '✗ Ошибка при конвертации'
+                };
+
+                const statusClasses = {
+                    ready: 'status-connected',
+                    converting: 'status-connected',
+                    success: 'status-connected',
+                    error: 'status-disconnected'
+                };
+
+                this.connectionStatus.textContent = statusMessages[status] || statusMessages.ready;
+                this.connectionStatus.className = statusClasses[status] || statusClasses.ready;
+            }
+        }
+
+        // Инициализация приложения после загрузки DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            new NumberConverter();
+        });
+
+        // Демонстрация работы при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const converter = new NumberConverter();
+                converter.numberInput.value = '255';
+                converter.convertNumber();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
